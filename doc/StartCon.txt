@@ -1,8 +1,8 @@
 
 ####################################################################
-StartCon Version 1.0.0.26 (18.06.2021) 32bit/64bit Version
+StartCon Version 1.0.0.28 (17.03.2022) 32bit/64bit Version
 
-		*** Copyright (C) 2017-2021 by Veit Berwig ***
+		*** Copyright (C) 2017-2022 by Veit Berwig ***
 
 Dieses Programm ist freie Software. Sie können es unter den
 Bedingungen der GNU General Public License, wie von der Free
@@ -38,11 +38,14 @@ Nicht-Existenz unter dem "."-Verzeichnis als Objekte angelegt:
 
 ComSpec, CONTROLLERPATH, EXEC_DATE, Path
 
-Der Inhalt der Variablen "CONTROLLERPATH" zeigt den lokalen Pfad
-unterhalb des "."-Ausführungsverzeichnisses. Die Variable "EXEC_DATE"
-beinhaltet einen lokalen Zeitstempel, der in Protokoll-Dateien
-verwendet werden kann. Die Variable "Path" wird erweitert auf das 
-"."-Ausführungsverzeichnis dieses Programmes.
+Der Inhalt der Variablen "%CONTROLLERPATH%" zeigt auf den lokalen Pfad
+unterhalb des "."-Ausführungsverzeichnisses. "%CONTROLLERPATH%" kann
+in der INI-Datei zur Referenz auf lokale Pfade für die Registry-
+Einträge verwendet werden. Somit können portable Registry-Werte für
+Pfadangaben zur Laufzeit erzeugt - und wieder gelöscht werden. Die
+Variable "EXEC_DATE" beinhaltet einen lokalen Zeitstempel, der in
+Protokoll-Dateien verwendet werden kann. Die Variable "Path" wird
+erweitert auf das "."-Ausführungsverzeichnis dieses Programmes.
 
 Der Loader "StartCon.exe" kann in jede .EXE-Datei umbenannt
 bzw. kopiert werden, um die Namensgebung an ein anderes
@@ -126,12 +129,27 @@ INI-Datei
 <name>.ini (Default: "StartCon.ini" der Datei
 <name>.exe (Default: "StartCon.exe"):
 
+; ====================================================================
+; StartCon.exe (32bit) / StartCon64.exe (64bit)
+;
+; Veit Berwig 20220118
+; Lizenz: Open-Source nach GPL v3.0
+; ====================================================================
+; Anleitung:
+; ====================================================================
+; "StartCon.exe" bzw. "StartCon64.exe" in ... 
+; "meinprogramm_startet_dies.exe" umbenennen und die 
+; "StartCon.ini bzw. "StartCon64.ini" in ...
+; "meinprogramm_startet_dies.ini" umbenennen und schon hat man eine
+; einzelne Ausführungs-Instanz mit u. g. Möglichkeiten.
+; ====================================================================
 ; LaunchAPP:            Absoluter Pfad des ausführbaren Programmes.
+; LaunchAPP:            Auszuführendes Programm (Angabe mit absoluten
+;                       Pfad des ausführbaren Programmes, wenn der
+;                       Wert "DontCheckPATH" nicht angegeben wurde oder
+;                       "DontCheckPATH" den Wert "false" besitzt).
 ; DontCheckPATH:        Wenn "true", dann wird der absolute Pfad von
-;                       "LaunchAPP" nicht geprüft. Es wird dann der
-;                       Suchpfad verwendet. Bei "false" muss ein
-;                       absoluter Pfad angegeben werden; dieser wird
-;                       dann auf Existenz geprüft.
+;                       "LaunchAPP" nicht geprüft.
 ; LaunchPROC:           Prozessname mit Erweiterung auf den gewartet
 ;                       werden soll.
 ; LaunchPROC_SLEEP:     Anzahl der Sekunden mit denen auf das Programm
@@ -145,13 +163,16 @@ INI-Datei
 ;                       beenden.
 ; LaunchPROC_DONTCHECK: Nicht prüfen, ob Prozess-Name ("LaunchPROC")
 ;                       schon im Speicher läuft.
-; EnvUpdate:            Prozess-Environment in die Umgebung exportieren.
+; EnvUpdate:            Prozess-Environment in die Umgebung exportieren
+;                       (true/[false]).
+; Eventlog:             In das Ereignisprotokoll schreiben
+;                       (true/[false]).
 ; http_proxy:           HTTP  Umgebungs-Proxy-Variable lokal definieren.
 ; https_proxy:          HTTPS Umgebungs-Proxy-Variable lokal definieren.
 ; ftp_proxy:            FTP   Umgebungs-Proxy-Variable lokal definieren.
 ; KILLAPP0-KILLAPP19    Prozesse mit Namen, die nach Abschluss ebenfalls 
 ;                       beendet werden sollen.
-; REMOVE0=REMOVE19      Zu löschende Dateien nach dem Beenden der
+; REMOVE0-REMOVE19      Zu löschende Dateien nach dem Beenden der
 ;                       Prozesse unter der Sektion KILLAPP0-KILLAPP19.
 ;                       Es können auch Umgebungsvariablen verwendet
 ;                       werden (min. 10 Zeichen, max 256 Zeichen).
@@ -160,6 +181,52 @@ INI-Datei
 ; CLOSEWIN0-CLOSEWIN19  Fenster mit Namen, die nach Abschluss ebenfalls
 ;                       beendet werden sollen, bzw. auf die vor
 ;                       Beendigung gewartet werden soll.
+; [RegWrite]            Registry anlegen, max 20 Einträge sind möglich.
+;                       ##############################################
+;                       !! ACHTUNG !!
+;                       Unter 32bit "StartController.exe" z. B.,
+;                       "HKLM\SOFTWARE\Microsoft\MSBuild\14.0" ist:
+;                       "HKLM\SOFTWARE\WOW6432Node\Microsoft\MSBuild\14.0" !!
+;                       Unter 64bit "StartController.exe", ist dies:
+;                       "HKLM\SOFTWARE\Microsoft\MSBuild\14.0" !!
+;                       ##############################################
+; KEYN0-KEYN19          Schlüsselname inklusive Pfad zum anlegen eines
+;                       Schlüssels, bzw. eines Wertes. Der Schlüssel
+;                       muss mit "HKLM", "HKU", "HKCU", "HKCR", "HKCC",
+;                       "HKLM64", "HKU64", "HKCU64", "HKCR64" oder
+;                       "HKCC64" beginnen (max. Länge 256 Zeichen).
+;                       Netzwerkzugriffe mit "\\" sind nicht erlaubt.
+; VALN0-VALN19          Name des Wertes unterhalb des Schlüssels,
+;                       (max. Länge 256 Zeichen). Um auf den
+;                       (Standard) Wert zuzugreifen, muss der Wertname
+;                       "" (ein Leerstring) sein (also hier nicht
+;                       definiert).
+; TYPE0-TYPE19          Typ des Wertes; darf folgende Werte enthalten:
+;                       "REG_BINARY", "REG_SZ", "REG_MULTI_SZ",
+;                       "REG_EXPAND_SZ", "REG_QWORD" oder "REG_DWORD"
+; DATA0-DATA19          Daten, abhängig von TYPE0-19. Bei "REG_MULTI_SZ"
+;                       müssen die Werte mit dem Bezeichner @LF
+;                       getrennt werden. Der Schlüsselwert darf nicht
+;                       mit einem @LF enden, es sei denn, man möchte
+;                       einen leeren Teilstring einfügen. Aktuell
+;                       kann nur eine Zeile geschrieben werden (ToDo).
+; [RegDelete]           Regsitry löschen, max 20 Einträge sind möglich.
+;                       ##############################################
+;                       !! ACHTUNG !!
+;                       Unter 32bit "StartController.exe" z. B.,
+;                       "HKLM\SOFTWARE\Microsoft\MSBuild\14.0" ist:
+;                       "HKLM\SOFTWARE\WOW6432Node\Microsoft\MSBuild\14.0" !!
+;                       Unter 64bit "StartController.exe", ist dies:
+;                       "HKLM\SOFTWARE\Microsoft\MSBuild\14.0" !!
+;                       ##############################################
+; KEYN0-KEYN19          Schlüsselname inklusive Pfad zum anlegen eines
+;                       Schlüssels, bzw. eines Wertes. Der Schlüssel
+;                       muss mit "HKLM", "HKU", "HKCU", "HKCR", "HKCC",
+;                       "HKLM64", "HKU64", "HKCU64", "HKCR64" oder
+;                       "HKCC64" beginnen (max. Länge 256 Zeichen).
+; VALN0-VALN19          Name des Wertes unterhalb des Schlüssels,
+;                       (max. Länge 256 Zeichen).
+; ====================================================================
 
 [Main Prefs]
 ; Auszuführendes Programm mit absoluten Pfad zum aktuellen Pfad
@@ -394,10 +461,31 @@ History/Changelog:
 		killing all "Gpg4Win"-processes in order to start "Kleopatra"
 		much faster under Windows at first time.
 
-	-   The cleanupProc() was disabled, due to double execution of some
+	- The cleanupProc() was disabled, due to double execution of some
 		functions in the main program and twice on exit() by cleanupProc().
 
+	1.0.0.27 (18.01.2022)
+
+	-	Added registry-key creation and deletion.
+		Look at "doc\StartCon.txt" for details.
+
+	-	Added logging to eventlog.
+
+	1.0.0.28 (17.03.2022)
+
+	-	The cleanupProc()-function must be enabled, because it is necessary
+		when user aborts program by selecting Exit on Tray-Menu. Removed
+		duplicated code from runController().
+
+	-	Added boolean-value "Eventlog" into "Main Prefs"-section of INI-file.
+		Set "Eventlog" to "true" enables writing to the eventlog, "false"
+		disables writing to the eventlog.
+
+	-	Fixed error:
+		Now running $launchapp after writing registry-keys in order to
+		have a correct environment.
+		
 =====================================================================
 	Veit Berwig
- Janur 2021
+  March 2022
 =====================================================================
